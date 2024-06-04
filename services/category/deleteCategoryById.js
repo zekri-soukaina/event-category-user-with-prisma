@@ -1,15 +1,25 @@
-import categoriesData from "../../data/categories.json" assert { type: "json" };
 import NotFoundError from "../../errors/NotFoundError.js";
+import { PrismaClient } from "@prisma/client";
 
-const deleteCategoryById = (id) => {
-  const index = categoriesData.categories.findIndex(
-    (category) => category.id === id
-  );
-  if (!index) {
+const prisma = new PrismaClient();
+
+const deleteCategoryById = async (id) => {
+  if (!ObjectId.isValid(id)) {
     throw new NotFoundError("category", id);
   }
-  categoriesData.categories.splice(index, 1);
-  return id;
+  try {
+    const deleteCategory = await prisma.category.delete({
+      where: {
+        id,
+      },
+    });
+    if (!deleteCategory) {
+      throw new NotFoundError("category", id);
+    }
+    return deleteCategory.id;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export default deleteCategoryById;

@@ -11,11 +11,11 @@ import authMiddleware from "../middleware/advancedAuth.js";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
     // const events = getEvents();
     const { title, location } = req.query;
-    const events = getEvents(title, location);
+    const events = await getEvents(title, location);
     res.status(200).json(events);
   } catch (error) {
     console.log(error);
@@ -23,7 +23,7 @@ router.get("/", (req, res) => {
   }
 });
 
-router.post("/", authMiddleware, (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const {
       createdBy,
@@ -35,7 +35,7 @@ router.post("/", authMiddleware, (req, res) => {
       startTime,
       endTime,
     } = req.body;
-    const newEvent = createEvent(
+    const newEvent = await createEvent(
       createdBy,
       title,
       description,
@@ -54,10 +54,14 @@ router.post("/", authMiddleware, (req, res) => {
 
 router.get(
   "/:id",
-  (req, res) => {
-    const { id } = req.params;
-    const event = getEventById(id);
-    res.status(200).json(event);
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const event = await getEventById(id);
+      res.status(200).json(event);
+    } catch (error) {
+      next(error);
+    }
   },
   notFoundErrorHandler
 );
@@ -65,34 +69,38 @@ router.get(
 router.put(
   "/:id",
   authMiddleware,
-  (req, res) => {
-    const { id } = req.params;
-    const {
-      createdBy,
-      title,
-      description,
-      image,
-      categoryIds,
-      location,
-      startTime,
-      endTime,
-    } = req.body;
-    const updateEvent = updateEventById(
-      id,
-      createdBy,
-      title,
-      description,
-      image,
-      categoryIds,
-      location,
-      startTime,
-      endTime
-    );
-    // res.status(200).json(updateEvent);
-    res.status(200).send({
-      message: `Event with id ${id} successfully updated`,
-      updateEvent,
-    });
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const {
+        createdBy,
+        title,
+        description,
+        image,
+        categoryIds,
+        location,
+        startTime,
+        endTime,
+      } = req.body;
+      const updateEvent = await updateEventById(
+        id,
+        createdBy,
+        title,
+        description,
+        image,
+        categoryIds,
+        location,
+        startTime,
+        endTime
+      );
+      // res.status(200).json(updateEvent);
+      res.status(200).send({
+        message: `Event with id ${id} successfully updated`,
+        updateEvent,
+      });
+    } catch (error) {
+      next(error);
+    }
   },
   notFoundErrorHandler
 );
@@ -100,12 +108,18 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  (req, res) => {
-    const { id } = req.params;
-    const deleteEvent = deleteEventById(id);
-    res
-      .status(200)
-      .json({ message: `Event with id ${deleteEvent} successfully deleted.` });
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const deleteEvent = await deleteEventById(id);
+      res
+        .status(200)
+        .json({
+          message: `Event with id ${deleteEvent} successfully deleted.`,
+        });
+    } catch (error) {
+      next(error);
+    }
   },
   notFoundErrorHandler
 );

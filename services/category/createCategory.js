@@ -1,13 +1,23 @@
-import categoriesData from "../../data/categories.json" assert { type: "json" };
-import { v4 as uuidv4 } from "uuid";
+import { PrismaClient } from "@prisma/client";
+import { ObjectId } from "mongodb";
 
-const createCategory = (name) => {
-  const newCategory = {
-    id: uuidv4(),
-    name,
-  };
-  categoriesData.categories.push(newCategory);
-  return newCategory;
+const prisma = new PrismaClient();
+
+const createCategory = async (name) => {
+  const existingCategory = await prisma.category.findFirst({
+    where: {
+      name,
+    },
+  });
+  if (existingCategory) {
+    return existingCategory;
+  }
+  return prisma.category.create({
+    data: {
+      id: new ObjectId().toHexString(),
+      name,
+    },
+  });
 };
 
 export default createCategory;

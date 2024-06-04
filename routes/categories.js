@@ -1,5 +1,6 @@
 import express from "express";
 import notFoundErrorHandler from "../middleware/notFoundErrorHandler.js";
+
 import getCategories from "../services/category/getCategories.js";
 import getCategoryById from "../services/category/getCategoryById.js";
 import createCategory from "../services/category/createCategory.js";
@@ -10,9 +11,9 @@ import authMiddleware from "../middleware/advancedAuth.js";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const categories = getCategories();
+    const categories = await getCategories();
     res.status(200).json(categories);
   } catch (error) {
     console.error(error);
@@ -20,10 +21,10 @@ router.get("/", (req, res) => {
   }
 });
 
-router.post("/", authMiddleware, (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const { name } = req.body;
-    const category = createCategory(name);
+    const category = await createCategory(name);
     res.status(201).json(category);
   } catch (error) {
     console.error(error);
@@ -33,10 +34,14 @@ router.post("/", authMiddleware, (req, res) => {
 
 router.get(
   "/:id",
-  (req, res) => {
-    const { id } = req.params;
-    const categoryById = getCategoryById(id);
-    res.status(200).json(categoryById);
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const categoryById = await getCategoryById(id);
+      res.status(200).json(categoryById);
+    } catch (error) {
+      next(error);
+    }
   },
   notFoundErrorHandler
 );
@@ -44,15 +49,19 @@ router.get(
 router.put(
   "/:id",
   authMiddleware,
-  (req, res) => {
-    const { id } = req.params;
-    const { name } = req.body;
-    const updateCategoy = updateCategoryById(id, name);
-    // res.status(200).json(updateCategoy);
-    res.status(200).send({
-      message: `Category with id ${id} successfully updated`,
-      updateCategoy,
-    });
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+      const updateCategoy = await updateCategoryById(id, name);
+      // res.status(200).json(updateCategoy);
+      res.status(200).send({
+        message: `Category with id ${id} successfully updated`,
+        updateCategoy,
+      });
+    } catch (error) {
+      next(error);
+    }
   },
   notFoundErrorHandler
 );
@@ -60,16 +69,20 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  (req, res) => {
-    const { id } = req.params;
-    const deleteCategory = deleteCategoryById(id);
-    // res.status(200).json({
-    //   message: `category with id ${deleteCategory}  successfully deleted.`,
-    // });
-    res.status(200).send({
-      message: `Category with id ${id} successfully deleted`,
-      deleteCategory,
-    });
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const deleteCategory = await deleteCategoryById(id);
+      // res.status(200).json({
+      //   message: `category with id ${deleteCategory}  successfully deleted.`,
+      // });
+      res.status(200).send({
+        message: `Category with id ${id} successfully deleted`,
+        deleteCategory,
+      });
+    } catch (error) {
+      next(error);
+    }
   },
   notFoundErrorHandler
 );

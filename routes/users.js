@@ -10,9 +10,9 @@ import authMiddleware from "../middleware/advancedAuth.js";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const users = getUsers();
+    const users = await getUsers();
     res.status(200).json(users);
   } catch (error) {
     console.log(error);
@@ -22,18 +22,18 @@ router.get("/", (req, res) => {
 
 router.get(
   "/:id",
-  (req, res) => {
+  async (req, res) => {
     const { id } = req.params;
-    const user = getUserById(id);
+    const user = await getUserById(id);
     res.status(200).json(user);
   },
   notFoundErrorHandler
 );
 
-router.post("/", authMiddleware, (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const { username, password, name, image } = req.body;
-    const newUser = createUser(username, password, name, image);
+    const newUser = await createUser(username, password, name, image);
     res.status(201).json(newUser);
   } catch (error) {
     console.error(error);
@@ -44,15 +44,25 @@ router.post("/", authMiddleware, (req, res) => {
 router.put(
   "/:id",
   authMiddleware,
-  (req, res) => {
-    const { id } = req.params;
-    const { username, password, name, image } = req.body;
-    const updatedUser = updateUserById(id, username, password, name, image);
-    // res.status(200).json(updatedUser);
-    res.status(200).send({
-      message: `User with id ${id} successfully updated`,
-      updatedUser,
-    });
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { username, password, name, image } = req.body;
+      const updatedUser = await updateUserById(
+        id,
+        username,
+        password,
+        name,
+        image
+      );
+      // res.status(200).json(updatedUser);
+      res.status(200).send({
+        message: `User with id ${id} successfully updated`,
+        updatedUser,
+      });
+    } catch (error) {
+      next(error);
+    }
   },
   notFoundErrorHandler
 );
@@ -60,14 +70,16 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  (req, res) => {
-    const { id } = req.params;
-    const deletedUserId = deleteUserById(id);
-    res
-      .status(200)
-      .json({
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const deletedUserId = await deleteUserById(id);
+      res.status(200).json({
         message: `user with the id ${deletedUserId} successfully deleted.`,
       });
+    } catch (error) {
+      next(error);
+    }
   },
   notFoundErrorHandler
 );
