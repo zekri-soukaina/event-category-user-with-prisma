@@ -1,0 +1,16 @@
+{
+  "categories": [
+    {
+      "name": "sports",
+      "id": "64b4d8f3d0a2f5b3c4e90a2a"
+    },
+    {
+      "name": "games",
+      "id": "64b4d8f3d0a2f5b3c4e90a2c"
+    },
+    {
+      "name": "relaxation",
+      "id": "64b4d8f3d0a2f5b3c4e90a31"
+    }
+  ]
+}
